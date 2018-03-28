@@ -17,16 +17,30 @@
         ],
         [
             " ",
-            "Write Pixel X %n Y %n Intensity %n",
+            "Write Pixel X %n Y %n Intensity %m.val",
             "write_pixel",
             "0",
             "0",
-            "9"
+            "1"
+        ],
+        [
+            " ",
+            "Display pattern %n",
+            "display_pattern",
+            "01110 10101 11011 10001 01110"
         ],
         [
             " ",
             "Clear Display",
             "display_clear"
+        ],
+        [
+            " ",
+            "Setup Pin %m.pins as %m.admodes %m.iomodes",
+            "setup_pin",
+            "0",
+            "Digital",
+            "Output"
         ],
         [
             " ",
@@ -164,7 +178,23 @@
             "ARROW_S",
             "ARROW_SW",
             "ARROW_W",
-            "ARROW_NW"
+            "ARROW_NW",
+            "HEART_SMALL",
+            "TRIANGLE_LEFT",
+            "CHESSBOARD",
+            "PITCHFORK",
+            "XMAS",
+            "TSHIRT",
+            "SWORD",
+            "UMBRELLA",
+            "DUCK",
+            "TORTOSE",
+            "BUTTERFLY",
+            "GIRAFFE",
+            "SKULL",
+            "MUSIC_CHOTCHET",
+            "MUSIC_QUAVER",
+            "MUSIC_QUAVERS"
 	    ],
         "pins": [
             "0",
@@ -174,6 +204,14 @@
         "val": [
             "0",
 	        "1"
-        ] 
+        ],
+        "iomodes": [
+            "Input",
+            "Output"
+        ],
+        "admodes": [
+            "Digital",
+            "Analog"
+        ]
     }
 }
