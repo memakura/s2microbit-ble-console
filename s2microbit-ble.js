@@ -16,6 +16,7 @@ let useButtons = true;
 let useTemperature = true;
 let useAccelerometer = true;
 let useMagnetometer = false;
+let usePins = true;
 
 // states and values
 let buttonState = null;
@@ -157,12 +158,13 @@ function showPinSetting(microbit) {
 
 // Initialize 0-2 pin setting to Analog-Input
 function initializePinSetting(microbit) {
+  /*
   microbit.writePinAdConfiguration(0x07, function(error) {
     console.log("writePinAdConfiguration (error): ", error);
     microbit.writePinIoConfiguration(0x07, function(error) {
       console.log("writePinIoConfiguration (error): ", error);
-      microbit.subscribePinData(function(error) {
-        console.log("subscribePinData (error): ", error);
+//      microbit.subscribePinData(function(error) {
+//        console.log("subscribePinData (error): ", error);
         microbit.readPin(function(error, value) { // triger pinDataChange...
           showPinSetting(microbit);
           for (var pin=0; pin <= 2; pin++) {
@@ -171,10 +173,11 @@ function initializePinSetting(microbit) {
         });
       });
     });
-  });
-//  for (var pin=0; pin <= 2; pin++) {
-//    setupPinMode({pin: pin, ADmode: 'analog', IOmode: 'input'});    
-//  }
+//  });
+*/
+  for (var pin=0; pin <= 2; pin++) {
+    setupPinMode({pin: pin, ADmode: 'analog', IOmode: 'input'});    
+  }
 }
 
 
@@ -273,9 +276,12 @@ function microbitFound(microbit) {
         });
       });
     }
-
-    initializePinSetting(microbit); // Initialize pin 0-2
-
+    if (usePins) {
+      microbit.subscribePinData(function(error) {
+        console.log("subscribePinData (error): ", error);
+        initializePinSetting(microbit); // Initialize pin 0-2
+      });
+    }
     // Read device name
     microbit.readDeviceName(function(error, devicename) {
       console.log('microbit deviceName: ' + devicename);
@@ -552,20 +558,20 @@ function setupPinMode(data) {
     }
     // SubscribeData
     function subscribe(device, data) {
-      device.subscribePinData(function(error) {
+//      device.subscribePinData(function(error) {
         log(data);
         // It will trigger a pinDataChange.
         device.readPin(data.pin, function(error, value) {
           showPinSetting(device);
         });
-      });
+//      });
     }
     // UnsubscribeData
     function unsubscribe(device) {
-      device.unsubscribePinData(function(error) {
+//      device.unsubscribePinData(function(error) {
         log(data);
         showPinSetting(device);
-      });
+//      });
     }
 
     pinMode[data.pin] = PINMODE_OUTPUT_DIGITAL;
@@ -575,12 +581,12 @@ function setupPinMode(data) {
         if (data.ADmode == 'analog') {
           pinMode[data.pin] += PINMODE_ANALOG;
           device.pinAnalog(data.pin, function(error) {
-            console.log('subscribe analog input: pinMode= %d', pinMode[data.pin]);
+//            console.log('subscribe analog input: pinMode= %d', pinMode[data.pin]);
             subscribe(device, data);
           });
         } else {
           device.pinDigital(data.pin, function(error) {
-            console.log('subscribe digital input: pinMode= %d', pinMode[data.pin]);
+//            console.log('subscribe digital input: pinMode= %d', pinMode[data.pin]);
             subscribe(device, data);
           });
         };
