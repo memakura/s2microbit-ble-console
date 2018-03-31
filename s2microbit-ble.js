@@ -31,10 +31,11 @@ let ledBuffer = null;
 let deviceName = null;
 
 
-const PIN_NOTSET = 0xF0;
+const PIN_NOTSET = 0xFF;
 const PINMODE_OUTPUT_DIGITAL = 0x00;
 const PINMODE_INPUT = 0x01;
 const PINMODE_ANALOG = 0x02;
+const PINMODE_ANALOG_INPUT = 0x03;
 
 // LED matrix patterns (new Buffer has been deprecated: https://nodejs.org/api/buffer.html#buffer_buffer)
 const LED_PATTERNS = [
@@ -96,6 +97,7 @@ function createLedPatternMap() {
 }
 createLedPatternMap();
 
+// Initialization
 function initValues () {
   console.log("Initialize values...");
   buttonState = {A: 0, B: 0};
@@ -103,15 +105,16 @@ function initValues () {
   // The array has space for P0 to P20 (including P17 and P18).
   pinValue = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
   // 00(0):D-Out, 01(1):D-In, 10(2):A-Out, 11(3):A-In
-  pinMode = [PIN_NOTSET, PIN_NOTSET, PIN_NOTSET, PIN_NOTSET, PIN_NOTSET,
-      PIN_NOTSET, PIN_NOTSET, PIN_NOTSET, PIN_NOTSET, PIN_NOTSET, 
-      PIN_NOTSET, PIN_NOTSET, PIN_NOTSET, PIN_NOTSET, PIN_NOTSET, 
-      PIN_NOTSET, PIN_NOTSET, PIN_NOTSET, PIN_NOTSET, PIN_NOTSET,
-      PIN_NOTSET];
+  pinMode = [PIN_NOTSET, PIN_NOTSET, PIN_NOTSET, 
+      PIN_NOTSET, PIN_NOTSET, PIN_NOTSET, PIN_NOTSET, PIN_NOTSET, PIN_NOTSET, 
+      PIN_NOTSET, PIN_NOTSET, PIN_NOTSET, PIN_NOTSET, PIN_NOTSET, PIN_NOTSET, 
+      PIN_NOTSET, PIN_NOTSET, PIN_NOTSET, PIN_NOTSET, PIN_NOTSET, PIN_NOTSET];
 
+  // Initialize LED matrix
   ledBuffer = Buffer.alloc(5);
   LED_PATTERN_MAP['YES'].copy(ledBuffer); // copy the value (do not pass by reference)
 
+  // Initialize sensor data
   temperature = 0;
   magnetometerBearing = 0;
   magnetometer = { 'x': 0, 'y': 0, 'z': 0 };
@@ -134,11 +137,45 @@ function microbitScanner() {
   //BBCMicrobit.discover(microbitFound);
 }
 
+// Callback of discoverAll
 function onDiscover(microbit) {
   console.log("  found microbit : " + microbit);
 }
 
 microbitScanner();
+
+// Show pin settings
+function showPinSetting(microbit) {
+  microbit.readPinAdConfiguration(function(error, value) {
+    console.log("pinsetting AD: " + value);
+  });
+  microbit.readPinIoConfiguration(function(error, value) {
+    console.log("pinsetting IO: " + value);
+  });  
+}
+
+
+// Initialize 0-2 pin setting to Analog-Input
+function initializePinSetting(microbit) {
+  microbit.writePinAdConfiguration(0x07, function(error) {
+    console.log("writePinAdConfiguration (error): ", error);
+    microbit.writePinIoConfiguration(0x07, function(error) {
+      console.log("writePinIoConfiguration (error): ", error);
+      microbit.subscribePinData(function(error) {
+        console.log("subscribePinData (error): ", error);
+        microbit.readPin(function(error, value) { // triger pinDataChange...
+          showPinSetting(microbit);
+          for (var pin=0; pin <= 2; pin++) {
+            pinMode[pin] = PINMODE_ANALOG_INPUT;
+          }
+        });
+      });
+    });
+  });
+//  for (var pin=0; pin <= 2; pin++) {
+//    setupPinMode({pin: pin, ADmode: 'analog', IOmode: 'input'});    
+//  }
+}
 
 
 // Callback when discovered
@@ -237,14 +274,17 @@ function microbitFound(microbit) {
       });
     }
 
+    initializePinSetting(microbit); // Initialize pin 0-2
+
+    // Read device name
     microbit.readDeviceName(function(error, devicename) {
-      console.log('microbit: ' + devicename);
+      console.log('microbit deviceName: ' + devicename);
       deviceName = devicename;
     });
 
-    // initial pattern
+    // Initial pattern
     microbit.writeLedMatrixState(ledBuffer, function(error){
-        console.log('microbit: [write ledmatrix] buf= %x', val);
+        console.log("microbit: [write ledmatrix] buf= " + val.toString(2));
     });
     if (exserver === null) {
       startHTTPServer();
@@ -279,13 +319,14 @@ exapp.get('/scroll/:text', function(req, res) {
 exapp.get('/reset_all', function(req, res){
   console.log('reset_all is called');
   initValues();
+  initializePinSetting(device);  // Initialize pin 0-2
   res.send("OK");
 });
 
 // LED matrix (image pattern)
 function writeLedBuffer(error) {
   device.writeLedMatrixState(ledBuffer, function(error) {
-      console.log('writeLedBuffer: buf= %x', ledBuffer);
+      console.log("writeLedBuffer: buf= ", ledBuffer);
   });
 }
 // LED display preset image
@@ -297,7 +338,7 @@ exapp.get('/display_image/:name', function(req, res) {
     } else { // English
       LED_PATTERN_MAP[name].copy(ledBuffer);
     }
-    console.log('microbit: [display_image] name= %s');
+    console.log('microbit: [display_image] name= ' + name);
     writeLedBuffer();
   }
   res.send("OK");
@@ -378,7 +419,7 @@ exapp.get('/setup_pin/:pin/:admode/:iomode', function(req, res) {
       console.log('[setup_pin] error: pin number (%d) is out of range', pin);
       return;
     }
-    pinMode[pin] = PIN_NOTSET; // once reset mode
+    //    pinMode[pin] = PIN_NOTSET; // once reset mode
 
     var admode = req.params.admode;
     if (admode.charAt(0) == 'D') {
@@ -410,9 +451,9 @@ exapp.get('/digital_write/:pin/:value', function(req, res) {
       console.log('error: pin number (%d) is out of range', pin);
       return;
     }
-    setupPinMode({pin: pin, ADmode: 'digital', IOmode: 'output'}); // just in case...
-    if ( pinMode[pin] & PINMODE_INPUT || pinMode[pin] & PINMODE_ANALOG ) {
-      console.log('setup pin mode first : current pinMode[%d]= %d', pin, pinMode[pin]);
+    if ( (pinMode[pin] & PINMODE_INPUT) == PINMODE_INPUT || (pinMode[pin] & PINMODE_ANALOG) == PINMODE_ANALOG ) {
+      console.log("[digital_write] setup pin mode : current pinMode[%d]= %d", pin, pinMode[pin]);
+      setupPinMode({pin: pin, ADmode: 'digital', IOmode: 'output'});
     }else{
       var val = req.params.value;
       if(val >= 1) {
@@ -435,9 +476,9 @@ exapp.get('/analog_write/:pin/:value', function(req, res) {
       console.log('error: pin number (%d) is out of range', pin);
       return;
     }
-    setupPinMode({pin: pin, ADmode: 'analog', IOmode:' output'}); // just in case...
-    if ( pinMode[pin] & PINMODE_INPUT) {
-      console.log('setup pin mode first : current pinMode[%d]= %d', pin, pinMode[pin]);
+    if ( (pinMode[pin] & PINMODE_INPUT) == PINMODE_INPUT || (pinMode[pin] & PINMODE_ANALOG) != PINMODE_ANALOG ) {
+      console.log('[analog_write] setup pin mode : current pinMode[%d]= %d', pin, pinMode[pin]);
+      setupPinMode({pin: pin, ADmode: 'analog', IOmode:' output'});
     }else{
       var val = req.params.value;
       if(val > 255) {
@@ -455,25 +496,17 @@ exapp.get('/analog_write/:pin/:value', function(req, res) {
 });
 // -- Need test --
 
-// 
+// boolean reports
 exapp.get('/poll', function(req, res) {
   var reply = "";
   reply += "button_a_pressed " + (buttonState['A']!=0) + "\n";
   reply += "button_b_pressed " + (buttonState['B']!=0) + "\n";
-  reply += "temperature " + temperature + "\n";
-  reply += "magBearing " + magnetometerBearing + "\n";
-  reply += "mag_x " + magnetometer['x'] + "\n";
-  reply += "mag_y " + magnetometer['y'] + "\n";
-  reply += "mag_z " + magnetometer['z'] + "\n";
-  reply += "acc_x " + accelerometer['x'] + "\n";
-  reply += "acc_y " + accelerometer['y'] + "\n";
-  reply += "acc_z " + accelerometer['z'] + "\n";
   for (var pin=0; pin <= 20; pin++){
     if ((pinMode[pin] != PIN_NOTSET) && (pinMode[pin] & PINMODE_INPUT)){
       if (pinMode[pin] & PINMODE_ANALOG){
-        reply += "analog_read/" + pin + " " + pinValue[0] + "\n";
+        reply += "analog_read/" + pin + " " + pinValue[pin] + "\n";
       }else{
-        reply += "digital_read/" + pin + " " + pinValue[0] + "\n";
+        reply += "digital_read/" + pin + " " + pinValue[pin] + "\n";
       }
     }
   }
@@ -487,12 +520,23 @@ exapp.get('/poll', function(req, res) {
   } else {
     reply += "tilted_up false\ntilted_down true\n";
   }
-  if ( Math.abs(accelerometer['z'] - prev_acc_z) > 0.1 ) {
+  if ( Math.abs(accelerometer['z'] - prev_acc_z) > 0.7 ) {
     reply += "shaken true\n";
   } else {
     reply += "shaken false\n";
   }
   prev_acc_z = accelerometer['z'];
+
+  // sensor values
+  reply += "temperature " + temperature + "\n";
+  reply += "magBearing " + magnetometerBearing + "\n";
+  reply += "mag_x " + magnetometer['x'] + "\n";
+  reply += "mag_y " + magnetometer['y'] + "\n";
+  reply += "mag_z " + magnetometer['z'] + "\n";
+  reply += "acc_x " + accelerometer['x'] + "\n";
+  reply += "acc_y " + accelerometer['y'] + "\n";
+  reply += "acc_z " + accelerometer['z'] + "\n";
+
   res.send(reply);
   if (debug) { console.log(reply); }
 });
@@ -501,23 +545,30 @@ exapp.get('/poll', function(req, res) {
 
 // Setting up pin mode (analog/digital and input/output)
 function setupPinMode(data) {
-  // console.log('function: pinSetup');
-  if (device && (pinMode[data.pin]==PIN_NOTSET)) { // setup only once
-    console.log("setupPinMode: pin is originally configured as: %d", pinMode[data.pin]);
+  if (device) { //  && (pinMode[data.pin]==PIN_NOTSET)// setup only once
+    console.log("setupPinMode: pin %d is originally configured as: %d", data.pin, pinMode[data.pin]);
     function log(data) {
       console.log('microbit: setup pin %d as %s %s', data.pin, data.ADmode, data.IOmode);
     }
-
+    // SubscribeData
     function subscribe(device, data) {
       device.subscribePinData(function(error) {
         log(data);
         // It will trigger a pinDataChange.
         device.readPin(data.pin, function(error, value) {
+          showPinSetting(device);
         });
       });
     }
+    // UnsubscribeData
+    function unsubscribe(device) {
+      device.unsubscribePinData(function(error) {
+        log(data);
+        showPinSetting(device);
+      });
+    }
 
-    pinMode[data.pin] = PINMODE_OUTPUT_DIGITAL; // default
+    pinMode[data.pin] = PINMODE_OUTPUT_DIGITAL;
     if (data.IOmode == 'input') {
       pinMode[data.pin] += PINMODE_INPUT;
       device.pinInput(data.pin, function(error) {
@@ -539,11 +590,11 @@ function setupPinMode(data) {
         if (data.ADmode == 'analog') {
           pinMode[data.pin] += PINMODE_ANALOG;
           device.pinAnalog(data.pin, function(error) {
-            log(data);
+            unsubscribe(device);
           });
         } else {
           device.pinDigital(data.pin, function(error) {
-            log(data);
+            unsubscribe(device);
           });
         }
       });
