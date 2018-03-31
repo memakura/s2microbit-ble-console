@@ -48,7 +48,7 @@ const LED_PATTERNS = [
   {name: 'CONFUSED', value: Buffer.from([0b00000, 0b01010, 0b00000, 0b01010, 0b10101])},
   {name: 'ASLEEP', value: Buffer.from([0b00000, 0b11011, 0b00000, 0b01110, 0b00000])},
   {name: 'SURPRISED', value: Buffer.from([0b01010, 0b00000, 0b00100, 0b01010, 0b00100])},
-  {name: 'SILLY', value: Buffer.from([0b10001, 0b00000, 0b11111, 0b00101, 0b00111])},
+  {name: 'SILLY', value: Buffer.from([0b10001, 0b00000, 0b11111, 0b00011, 0b00011])},
   {name: 'FABULOUS', value: Buffer.from([0b11111, 0b11011, 0b00000, 0b01010, 0b01110])},
   {name: 'MEH', value: Buffer.from([0b01010, 0b00000, 0b00010, 0b00100, 0b01000])},
   {name: 'YES', value: Buffer.from([0b00000, 0b00001, 0b00010, 0b10100, 0b01000])},
@@ -82,13 +82,16 @@ const LED_PATTERNS = [
   {name: 'SWORD', value: Buffer.from([0b00100, 0b00100, 0b00100, 0b01110, 0b00100])},
   {name: 'UMBRELLA', value: Buffer.from([0b01110, 0b11111, 0b00100, 0b10100, 0b01100])},
   {name: 'DUCK', value: Buffer.from([0b01100, 0b11100, 0b01111, 0b01110, 0b00000])},
-  {name: 'TORTOSE', value: Buffer.from([0b00000, 0b01110, 0b11111, 0b01010, 0b00000])},
+  {name: 'TORTOISE', value: Buffer.from([0b00000, 0b01110, 0b11111, 0b01010, 0b00000])},
   {name: 'BUTTERFLY', value: Buffer.from([0b11011, 0b11111, 0b00100, 0b11111, 0b11011])},
   {name: 'GIRAFFE', value: Buffer.from([0b11000, 0b01000, 0b01000, 0b01110, 0b01010])},
   {name: 'SKULL', value: Buffer.from([0b01110, 0b10101, 0b11111, 0b01110, 0b01110])},
-  {name: 'MUSIC_CHOTCHET', value: Buffer.from([0b00100, 0b00100, 0b00100, 0b11100, 0b11100])},
+  {name: 'MUSIC_CROTCHET', value: Buffer.from([0b00100, 0b00100, 0b00100, 0b11100, 0b11100])},
   {name: 'MUSIC_QUAVER', value: Buffer.from([0b00100, 0b00110, 0b00101, 0b11100, 0b11100])},
-  {name: 'MUSIC_QUAVERS', value: Buffer.from([0b01111, 0b01001, 0b01001, 0b11011, 0b11011])}
+  {name: 'MUSIC_QUAVERS', value: Buffer.from([0b01111, 0b01001, 0b01001, 0b11011, 0b11011])},
+  {name: 'SCISSORS', value: Buffer.from([0b11001, 0b11010, 0b00100, 0b11010, 0b11001])},
+  {name: 'PACMAN', value: Buffer.from([0b01111, 0b11010, 0b11100, 0b11000, 0b01111])},
+  {name: 'GHOST', value: Buffer.from([0b01110, 0b10101, 0b11111, 0b11111, 0b10101])}
 ];
 let LED_PATTERN_MAP = { }; // map : pattern name -> value
 function createLedPatternMap() {

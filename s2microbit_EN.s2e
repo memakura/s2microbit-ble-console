@@ -13,7 +13,7 @@
             " ",
             "Scroll %s",
             "scroll",
-            "Replace With Your Text"
+            "Hello!"
         ],
         [
             " ",
@@ -188,13 +188,16 @@
             "SWORD",
             "UMBRELLA",
             "DUCK",
-            "TORTOSE",
+            "TORTOISE",
             "BUTTERFLY",
             "GIRAFFE",
             "SKULL",
-            "MUSIC_CHOTCHET",
+            "MUSIC_CROTCHET",
             "MUSIC_QUAVER",
-            "MUSIC_QUAVERS"
+            "MUSIC_QUAVERS",
+            "SCISSORS",
+            "PACMAN",
+            "GHOST"
 	    ],
         "pins": [
             "0",
