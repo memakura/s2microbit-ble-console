@@ -1,6 +1,5 @@
 node_modules/
 dist/
-*.lock
 tmp/
 old/
 yarn-error.log

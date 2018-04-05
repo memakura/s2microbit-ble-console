@@ -503,9 +503,8 @@ exapp.get('/analog_write/:pin/:value', function(req, res) {
   }
   res.send("OK");
 });
-// -- Need test --
 
-// boolean reports
+// Response to polloing
 exapp.get('/poll', function(req, res) {
   var reply = "";
   reply += "button_a_pressed " + (buttonState['A']!=0) + "\n";
