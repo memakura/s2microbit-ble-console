@@ -1,10 +1,13 @@
 # s2microbit-ble-console
 
-日本語: [Qiitaの記事に詳しい説明があります](https://qiita.com/drafts/11a0426f9060da1ded7e#（まとめ）s2microbit-ble-console のインストールと使用方法)．
+[Qiitaの記事](https://qiita.com/drafts/11a0426f9060da1ded7e#（まとめ）s2microbit-ble-console のインストールと使用方法)に詳しい説明があります．
 
-## Installation
+1. hex ファイルを micro:bit に書き込んでおきます．
+1. Scratch 2 のプロジェクト (.sb2) をダウンロードして開いておきます．（Scratch 2 を開き，シフトを押しながらファイルを押して「実験的なHTTP拡張を読み込み」から拡張ブロックの定義ファイル (.s2e) ファイルを開いても使えます．
+1. `npm start` とすると node で s2microbit.js を実行します．
+1. micro:bit 側はLEDマトリクスが「ハート」を経て「チェックマーク」に変わり，Scratch 2 側は「その他」のs2microbit-ble の横にある赤丸が緑色になれば接続完了で使用できます．
 
-### Requirements
+## Requirements
 
 Windows: same as [node-gyp](https://github.com/nodejs/node-gyp)
 
@@ -12,6 +15,8 @@ Windows: same as [node-gyp](https://github.com/nodejs/node-gyp)
 - Scratch 2 offline
 - Visual Studio 2015
 - Python 2.7
+
+## Installation
 
 ```
 > git clone https://github.com/memakura/s2microbit-ble-console.git
