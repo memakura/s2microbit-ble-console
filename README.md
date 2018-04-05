@@ -1,6 +1,6 @@
 # s2microbit-ble-console
 
-[Qiitaの記事](https://qiita.com/memakura/items/11a0426f9060da1ded7e#%E3%81%BE%E3%81%A8%E3%82%81s2microbit-ble-console-%E3%81%AE%E3%82%A4%E3%83%B3%E3%82%B9%E3%83%88%E3%83%BC%E3%83%AB%E3%81%A8%E4%BD%BF%E7%94%A8%E6%96%B9%E6%B3%95)に詳しい説明があります．
+[Qiitaの記事](https://qiita.com/memakura/items/11a0426f9060da1ded7e#%E3%81%BE%E3%81%A8%E3%82%81-s2microbit-ble-console-%E3%81%AE%E4%BD%BF%E7%94%A8%E6%96%B9%E6%B3%95)に詳しい説明があります．
 
 1. hex ファイルを micro:bit に書き込んでおきます．
 1. Scratch 2 のプロジェクト (.sb2) をダウンロードして開いておきます．（Scratch 2 を開き，シフトを押しながらファイルを押して「実験的なHTTP拡張を読み込み」から拡張ブロックの定義ファイル (.s2e) ファイルを開いても使えます．
