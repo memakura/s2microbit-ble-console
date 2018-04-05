@@ -15,7 +15,7 @@ let debug = false;
 let useButtons = true;
 let useTemperature = true;
 let useAccelerometer = true;
-let useMagnetometer = false;
+let useMagnetometer = true; // false
 let usePins = true;
 
 // states and values
@@ -137,8 +137,8 @@ function microbitScanner() {
   console.log('microbit: scanning...');
   //BBCMicrobit.discoverAll(onDiscover); // find all microbits
 
-  BBCMicrobit.discoverById(id, microbitFound);
-  //BBCMicrobit.discover(microbitFound);
+  //BBCMicrobit.discoverById(id, microbitFound);
+  BBCMicrobit.discover(microbitFound);
 }
 
 // Callback of discoverAll
