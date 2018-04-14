@@ -3,7 +3,7 @@
 // Some part of the code is from 
 // https://github.com/jaafreitas/scratch-microbit-extension/
 
-let BBCMicrobit = require('bbc-microbit');
+const BBCMicrobit = require('bbc-microbit');
 let device = null;
 let microbitConnected = false;
 
@@ -192,7 +192,7 @@ function microbitFound(microbit) {
   microbit.on('disconnect', function() {
     microbitConnected = false;
     device = null;
-    console.log('microbit: disconnected ' + microbitConnected);
+    console.log('microbit: disconnected. microbitConnected= ' + microbitConnected);
     microbitScanner();
   });
 
@@ -281,7 +281,7 @@ function microbitFound(microbit) {
     }
     if (usePins) {
       microbit.subscribePinData(function(error) {
-        console.log("subscribePinData (error): ", error);
+        console.log('microbit: subscribePinData');
         initializePinSetting(microbit); // Initialize pin 0-2
       });
     }
@@ -302,8 +302,8 @@ function microbitFound(microbit) {
 }
 
 // ================= HTTP server =======================
-var express = require('express');
-var exapp = express();
+const express = require('express');
+let exapp = express();
 let exserver = null;
 
 function startHTTPServer(){
@@ -312,7 +312,7 @@ function startHTTPServer(){
   });
 }
 
-//--- Responses to HTTP requrests from Scratch 2.0
+//--- Routing: Responses to HTTP requrests from Scratch 2.0
 exapp.get('/scroll/:text', function(req, res) {
   if (device) {
     // text is a string that must be 20 characters or less
@@ -321,7 +321,7 @@ exapp.get('/scroll/:text', function(req, res) {
       console.log('microbit: display %s', txt);
     });
   }
-  res.send("OK");
+  res.send('OK');
 });
 
 // Reset from scratch
@@ -329,7 +329,7 @@ exapp.get('/reset_all', function(req, res){
   console.log('reset_all is called');
   initValues();
   initializePinSetting(device);  // Initialize pin 0-2
-  res.send("OK");
+  res.send('OK');
 });
 
 // LED matrix (image pattern)
@@ -350,7 +350,7 @@ exapp.get('/display_image/:name', function(req, res) {
     console.log('microbit: [display_image] name= ' + name);
     writeLedBuffer();
   }
-  res.send("OK");
+  res.send('OK');
 });
 
 // LED dot
@@ -381,31 +381,38 @@ exapp.get('/write_pixel/:x/:y/:value', function(req, res){
       console.log('microbit: [write_pixel] val=%d to (%d, %d)', val, x, y);
       writeLedBuffer();
   }
-  res.send("OK");  
+  res.send('OK');  
 });
 
 // LED display custom pattern
 exapp.get('/display_pattern/:binstr', function(req, res) {
   if (device) {    
     console.log('microbit: [display_pattern] str= %s', req.params.binstr);
-    var binstr = req.params.binstr;
     // check
-    var linearray = binstr.split(' ');
+    if ( ! /^[01]{5} [01]{5} [01]{5} [01]{5} [01]{5}$/.test(req.params.binstr) ) {
+      console.log('error: illegal pattern');
+      res.send('ERROR');
+      return;
+    }
+    var linearray = req.params.binstr.split(' ');
     // check
+    /*
     for (var s in linearray) {
       console.log('s= %s', s);
     }
     if (linearray.length != 5) {
       console.log('error: illegal array length= %d', linearray.length);
+      res.send('ERROR');
       return;
     }
+    */
     for (var y=0; y < 5; y++) {
       ledBuffer.writeUInt8(parseInt(linearray[y], 2), y);
       console.log('buf[%d] = %d', y, ledBuffer[y]);
     }
     writeLedBuffer();
   }
-  res.send("OK");
+  res.send('OK');
 });
 
 // clear LED
@@ -415,7 +422,7 @@ exapp.get('/display_clear', function(req, res){
     console.log('microbit: [display_clear]');
     writeLedBuffer();
   }
-  res.send("OK");
+  res.send('OK');
 });
 
 // PIN I/O
@@ -426,6 +433,7 @@ exapp.get('/setup_pin/:pin/:admode/:iomode', function(req, res) {
     var pin = req.params.pin;
     if(pin < 0 || pin > 20 ){
       console.log('[setup_pin] error: pin number (%d) is out of range', pin);
+      res.send('ERROR');
       return;
     }
     //    pinMode[pin] = PIN_NOTSET; // once reset mode
@@ -437,6 +445,7 @@ exapp.get('/setup_pin/:pin/:admode/:iomode', function(req, res) {
       admode = 'analog';
     } else {
       console.log('[setup_pin] error: no such ADmode: %s', admode);
+      res.send('ERROR');
       return;
     }
     var iomode = req.params.iomode;
@@ -446,11 +455,12 @@ exapp.get('/setup_pin/:pin/:admode/:iomode', function(req, res) {
       iomode = 'output';
     } else {
       console.log('[setup_pin] error: no such IOmode: %s', iomode);
+      res.send('ERROR');
       return;
     }
     setupPinMode({pin: pin, ADmode: admode, IOmode: iomode});
   }
-  res.send("OK");
+  res.send('OK');
 });
 
 exapp.get('/digital_write/:pin/:value', function(req, res) {
@@ -458,6 +468,7 @@ exapp.get('/digital_write/:pin/:value', function(req, res) {
     var pin = req.params.pin;
     if(pin < 0 || pin > 20 ){
       console.log('error: pin number (%d) is out of range', pin);
+      res.send('ERROR');
       return;
     }
     if ( (pinMode[pin] & PINMODE_INPUT) == PINMODE_INPUT || (pinMode[pin] & PINMODE_ANALOG) == PINMODE_ANALOG ) {
@@ -475,7 +486,7 @@ exapp.get('/digital_write/:pin/:value', function(req, res) {
       });
     }
   }
-  res.send("OK");
+  res.send('OK');
 });
 
 exapp.get('/analog_write/:pin/:value', function(req, res) {
@@ -483,6 +494,7 @@ exapp.get('/analog_write/:pin/:value', function(req, res) {
     var pin = req.params.pin;
     if(pin < 0 || pin > 20 ){
       console.log('error: pin number (%d) is out of range', pin);
+      res.send('ERROR');
       return;
     }
     if ( (pinMode[pin] & PINMODE_INPUT) == PINMODE_INPUT || (pinMode[pin] & PINMODE_ANALOG) != PINMODE_ANALOG ) {
@@ -501,49 +513,49 @@ exapp.get('/analog_write/:pin/:value', function(req, res) {
       });
     }
   }
-  res.send("OK");
+  res.send('OK');
 });
 
 // Response to polloing
 exapp.get('/poll', function(req, res) {
-  var reply = "";
-  reply += "button_a_pressed " + (buttonState['A']!=0) + "\n";
-  reply += "button_b_pressed " + (buttonState['B']!=0) + "\n";
+  var reply = '';
+  reply += 'button_a_pressed ' + (buttonState['A']!=0) + '\n';
+  reply += 'button_b_pressed ' + (buttonState['B']!=0) + '\n';
   for (var pin=0; pin <= 20; pin++){
     if ((pinMode[pin] != PIN_NOTSET) && (pinMode[pin] & PINMODE_INPUT)){
       if (pinMode[pin] & PINMODE_ANALOG){
-        reply += "analog_read/" + pin + " " + pinValue[pin] + "\n";
+        reply += 'analog_read/' + pin + ' ' + pinValue[pin] + '\n';
       }else{
-        reply += "digital_read/" + pin + " " + pinValue[pin] + "\n";
+        reply += 'digital_read/' + pin + ' ' + pinValue[pin] + '\n';
       }
     }
   }
   if (accelerometer['x'] > 0) {
-    reply += "tilted_right true\ntilted_left false\n";
+    reply += 'tilted_right true\ntilted_left false\n';
   } else {
-    reply += "tilted_right false\ntilted_left true\n";
+    reply += 'tilted_right false\ntilted_left true\n';
   }
   if (accelerometer['y'] > 0) {
-    reply += "tilted_up true\ntilted_down false\n";
+    reply += 'tilted_up true\ntilted_down false\n';
   } else {
-    reply += "tilted_up false\ntilted_down true\n";
+    reply += 'tilted_up false\ntilted_down true\n';
   }
   if ( Math.abs(accelerometer['z'] - prev_acc_z) > 0.7 ) {
-    reply += "shaken true\n";
+    reply += 'shaken true\n';
   } else {
-    reply += "shaken false\n";
+    reply += 'shaken false\n';
   }
   prev_acc_z = accelerometer['z'];
 
   // sensor values
-  reply += "temperature " + temperature + "\n";
-  reply += "magBearing " + magnetometerBearing + "\n";
-  reply += "mag_x " + magnetometer['x'] + "\n";
-  reply += "mag_y " + magnetometer['y'] + "\n";
-  reply += "mag_z " + magnetometer['z'] + "\n";
-  reply += "acc_x " + accelerometer['x'] + "\n";
-  reply += "acc_y " + accelerometer['y'] + "\n";
-  reply += "acc_z " + accelerometer['z'] + "\n";
+  reply += 'temperature ' + temperature + '\n';
+  reply += 'magBearing ' + magnetometerBearing + '\n';
+  reply += 'mag_x ' + magnetometer['x'] + '\n';
+  reply += 'mag_y ' + magnetometer['y'] + '\n';
+  reply += 'mag_z ' + magnetometer['z'] + '\n';
+  reply += 'acc_x ' + accelerometer['x'] + '\n';
+  reply += 'acc_y ' + accelerometer['y'] + '\n';
+  reply += 'acc_z ' + accelerometer['z'] + '\n';
 
   res.send(reply);
   if (debug) { console.log(reply); }
