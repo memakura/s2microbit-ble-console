@@ -292,9 +292,8 @@ function microbitFound(microbit) {
     });
 
     // Initial pattern
-    microbit.writeLedMatrixState(ledBuffer, function(error){
-        console.log("microbit: [write ledmatrix] buf= " + val.toString(2));
-    });
+    writeLedBuffer();
+    
     if (exserver === null) {
       startHTTPServer();
     }
